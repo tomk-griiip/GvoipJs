@@ -4,6 +4,15 @@ You need to make sure there are 2 files Gvoip.js and streamvisualizer.js
 
 1. init Gvoip object (the first thing that need to do )
 ```javascript
+const loginSuccess = function(){
+    loginPage.style.display = "none";
+    callPage.style.display = "block";
+};
+const loginError = function(){
+    alert("Ooops...try a different username");
+}
+
+
 /**
  *
  * @param host signaling server url (websocket wss)
