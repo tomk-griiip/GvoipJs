@@ -4,7 +4,9 @@
  * @author Tom Knobel
  * @created-dte 01/12/2019
  */
-
+import('./streamvisualizer.js').then(module=>{
+    StreamVisualizer = module.StreamVisualizer;
+});
 (function (global) {
     'use strict';
 
