@@ -151,7 +151,7 @@
                 if (_pc.iceGatheringState === 'complete') {
                     resolve();
                 }else{
-                    var checkState = function () {
+                    this.checkState = function () {
                         if (_pc.iceGatheringState === 'complete') {
                             _pc.removeEventListener('icegatheringstatechange', checkState);
                             //loader.style.visibility = "hidden";
@@ -159,7 +159,7 @@
                         }
                     }
                 }
-                _pc.addEventListener('icegatheringstatechange', checkState);
+                _pc.addEventListener('icegatheringstatechange', this.checkState);
             })
         }).then(() =>{//after ICE gathering complete send the offer with the ICE candidate
             this.send({type: "offer", offer: this.pc.localDescription})
