@@ -1,69 +1,98 @@
 /*Griiip Voip WebRtc API Library*/
+/**
+ * @type Griiip Voip WebRtc API Library
+ * @author Tom Knobel
+ * @created-dte 01/12/2019
+ */
 
 (function (global) {
     'use strict';
 
-    /*private function*/
+    /*private function's*/
+    /**
+     *
+     * @param msg the message that the web socket send to this client
+     * @private
+     * @description thus function get message from the connected server and pass it to the relevant function
+     * the handler function need to be call "handle_{message type}" like handle_login
+     */
     let _wsOnmessage = function(msg){
         console.log("Got message", msg.data);
         let data = JSON.parse(msg.data),
             handlerName = "handle_" + data.type;
         this[handlerName](data);
     }
-    // start socket listening
+    /**
+     *
+     * @private
+     * @description start listening to the server according to the host url passed to the constructor
+     */
     let _startWebsocket = function(){
         this.ws = new WebSocket(this.host);
         this.ws.addEventListener('message', _wsOnmessage.bind(this));
         this.ws.addEventListener('close', _startWebsocket.bind(this));
     }
 
-    //create webRtc peer connection
+    /**
+     *
+     * @param remoteAudio the audio element that play the sound on the UI
+     * @returns {RTCPeerConnection} a connection to the client
+     * @description create javascript RTCPeerConnection object that connect to the relevant client
+     */
     function createPeerConnection(remoteAudio) {
         //create config for the peer connection
         let config = {
             sdpSemantics: 'unified-plan'
         };
-        config.iceServers= [{ "url": "stun:stun.l.google.com:19302" }];
+        config.iceServers= [{ "url": "stun:stun.l.google.com:19302" }];//ice/stun servers
         this.pc = new RTCPeerConnection(config);
-        // register track listeners to play remote track
+        /**
+         * register RTCPeerConnection events to listen to
+         */
+        //event for when remote track is received
         this.pc.addEventListener('track', function(e) {
             remoteAudio.srcObject  = e.streams[0];//.src = window.URL.createObjectURL(e.stream);
             remoteAudio.play();
             //const streamVisualizerRemote = new StreamVisualizer(e.streams[0], remoteCanvas);
             //streamVisualizerRemote.start();
         });
-        // register some listeners to help debugging
+        //event when the ice gathering state is change
         this.pc.addEventListener('icegatheringstatechange', function () {
             console.log(' icegatheringstatechange-> ' + this.iceGatheringState);
         }, false);
 
-
+        //event when the ice connection state is change
         this.pc.addEventListener('iceconnectionstatechange', function () {
             console.log('iceconnectionstatechange -> ' + this.iceConnectionState);
         }, false);
 
-
+        //event when the signaling state change
         this.pc.addEventListener('signalingstatechange', function () {
             console.log(' signalingstatechange -> ' + this.signalingState);
         }, false);
 
-
+        //event when the connection state is change
         this.pc.addEventListener('connectionstatechange', function () {
             console.log("conaction state changed : " + this.connectionState)
         });
-        return this.pc //return peer connection
+        return this.pc //return javascript RTCPeerConnection object
     }
 
+    /**
+     *
+     * @param _pc the RTCPeerConnection that was created in the createPeerConnection function
+     * @returns {Promise<resolve,reject>} inside the resolve there is the RTCPeerConnection
+     */
     function negotiate(_pc){
 
         return new Promise((resolve,reject)=>{
-            _pc = createPeerConnection.bind(this)(this.getRemoteAudio());//create peer
+            _pc = createPeerConnection.bind(this)(this.getRemoteAudio());//create RTCPeerConnection
 
             //get browser media (only audio)
-            navigator.mediaDevices.getUserMedia({ video: false, audio: true }).then((stream) =>{
+            navigator.mediaDevices.getUserMedia({ video: false, audio: true }).then((stream) =>{//gating the browser media API and access
                 //const streamVisualizerLocal = new StreamVisualizer(stream, localCanvas);
                 //streamVisualizerLocal.start();
-                stream.getTracks().forEach(function(track) {
+                stream.getTracks().forEach(function(track) {//add the local audio track to the RTCPeerConnection to be able to send it to the peer client
                     //if(pc.signalingState != "closed")
                     _pc.addTrack(track, stream);
                     resolve(_pc);
@@ -74,40 +103,81 @@
             })
         })
     };//startNegotiate
-
-    //contractor function
+    /**
+     *
+     * @param host signaling server url (websocket wss)
+     * @param remoteAudio the audio element that paly the remote track
+     * @param loginSuccessCallback function to handle successful login to the signaling server
+     * @param loginErrorCallback function to handle unsuccessfully login to the signaling server
+     * @constructor of Gvoip object
+     */
     global.Gvoip = function(host, remoteAudio, loginSuccessCallback, loginErrorCallback) {
-
-        /*private properties*/
+        /**
+         * private properties
+         */
         let _remoteAudio = remoteAudio,
             _stream,
             _connectedUser = null,
             _connectedUsers = [],
             _self = this;
 
-        /*public properties*/
+        /**
+         * public properties
+         */
         this.ws = null, this.host = host, this.pc = null, this.myName = null, this.loginSuccessCallback = loginSuccessCallback,
             this.loginErrorCallback = loginErrorCallback;
 
+        /**
+         *
+         * @returns {global.Gvoip}
+         */
         this.getSelf = function(){return _self};//getter this
 
+        /**
+         * set connectedUser
+         * @param user
+         */
         this.setConnectedUser = function(user){_connectedUser = user};//setter connectedUser
 
+        /**
+         * get connectedUser
+         * @returns {connectedUser}
+         */
         this.getConnectedUser = function(){return _connectedUser};//getter connectedUser
 
+        /**
+         * set remoteAudio
+         * @param remoteAudio
+         */
         this.setRemoteAudio = function(remoteAudio){_remoteAudio.src = remoteAudio};//setter remoteAudio
 
+        /**
+         * get the remoteAudio object
+         * @returns HTML audio element
+         */
         this.getRemoteAudio = function(){return _remoteAudio};//getter remoteAudio
 
+        /**
+         * set the connectedUsers of the signal server
+         * @param users
+         */
         this.setConnectedUsers = function(users){ _connectedUsers = users;};//setter connectedUsers
 
+        /**
+         * get the connectedUsers of the signal server
+         * @returns {Array}
+         */
         this.getConnectedUsers = function(){return _connectedUsers};//getter connectedUsers
-
+        /**
+         * start listening  server web socket
+         */
         _startWebsocket.bind(_self)();
     };
     /*public function*/
-
-    //alias for sending JSON encoded messages
+    /**
+     *
+     * @param message to send to signaling server over web socket
+     */
     Gvoip.prototype.send = function(message) {
         //attach the other peer username to our messages
         let connectedUser = this.getConnectedUser();
@@ -116,8 +186,10 @@
         }
         this.ws.send(JSON.stringify(message));
     };
-
-    //login to the signaling server
+    /**
+     * login to the signaling server
+     * @param userName
+     */
     Gvoip.prototype.loginToSignalingServer = function(userName){
         if (userName.length > 0) {
             this.myName = userName;
@@ -127,8 +199,11 @@
             });
         }
     }//loginToSignalingServer
-
-    //start negotiation phase
+    /**
+     * start negotiation phase
+     * @param user
+     * @returns {null}
+     */
     Gvoip.prototype.startNegotiate = function(user){
 
         if(user <= 0 || user === undefined || user == null || user === '') {
@@ -141,10 +216,6 @@
             let _offer = offer;
             console.log('_pc : '+_pc);
             _pc.setLocalDescription(offer);
-
-
-            //.then(() => send({type: "offer", offer: _offer}));
-
         }).then(()=>{
             // wait for ICE gathering to complete before sending the offer
             return new Promise((resolve)=>{
@@ -170,8 +241,10 @@
         }));//createOffer
 
     };//startNegotiate
-
-    //handle Login massage from signaling server
+    /**
+     * handle Login massage from signaling server
+     * @param data
+     */
     Gvoip.prototype.handle_login = function(data){
 
         if(data.success === false)
@@ -179,8 +252,10 @@
         else
             this.loginSuccessCallback();
     }
-
-    //handler when user logout the VOIP system
+    /**
+     * handler when user logout the VOIP system
+     * @param data
+     */
     Gvoip.prototype.handle_leave = function(data){
 
         this.pc.getSenders().forEach(function(sender) {
@@ -195,8 +270,10 @@
             this.send({type: "leave",name:this.name});
         },500)
     };//handleLeave
-
-    //when somebody sends us an offer
+    /**
+     * when somebody sends us an offer to connect throw p2p connection
+     * @param data
+     */
     Gvoip.prototype.handle_offer = function(data){
         let offer = data.offer, name = data.name;
 
@@ -212,14 +289,21 @@
             console.log(`creating answer error : ${error}`);
         });
     }//handleOffer
-
-    //when we got an answer from a remote user
+    /**
+     * when we got an answer from a remote client set a RTCSessionDescription
+     * @param data
+     * @returns {Promise<void>}
+     * @async
+     * @wait for setRemoteDescription
+     */
     Gvoip.prototype.handle_answer = async function(data) {
 
         await this.pc.setRemoteDescription(new RTCSessionDescription(data.answer));
     }//handleAnswer
-
-    //when we got an ice candidate from a remote user
+    /**
+     * when we got an ice candidate from a remote user
+     * @param data ( ice candidate )
+     */
     Gvoip.prototype.handle_candidate = function(data){
         this.pc.addIceCandidate(new RTCIceCandidate(data.candidate)).then(()=>{
             console.log('success to add ice candidate : ');
@@ -228,8 +312,10 @@
             console.error(`add ice candidate message : ${e.message}`);
         });
     }//handleCandidate
-
-    //when user is login/logout to the signaling server
+    /**
+     * when user is login/logout to the signaling server update the connectedUsers
+     * @param data  (all the connected users from the signaling server )
+     */
     Gvoip.prototype.handle_connectedUsers = function(data){
         let _users = this.getConnectedUsers(), users = data.data;
         _users.length = 0;
@@ -247,3 +333,4 @@
 
 
 })(this);
+
