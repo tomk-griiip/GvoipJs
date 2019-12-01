@@ -13,6 +13,7 @@
      * @param loader
      * @constructor
      */
+    let global_to_visualize = false;
     let ILoader = function(loader){
 
         /**
@@ -41,9 +42,11 @@
             return isLoader;
         }//checkLoader
 
-        return loader ? loader !== undefined && checkLoader(loader) : this; //init ILoader
-
-    }
+        if(loader !== undefined && checkLoader(loader))
+            return loader;
+        else
+            return this; //init ILoader
+    }//ILoader
     /*private function's*/
     /**
      *
@@ -89,8 +92,10 @@
         this.pc.addEventListener('track', function(e) {
             remoteAudio.srcObject  = e.streams[0];//.src = window.URL.createObjectURL(e.stream);
             remoteAudio.play();
-            //const streamVisualizerRemote = new StreamVisualizer(e.streams[0], remoteCanvas);
-            //streamVisualizerRemote.start();
+            if(global_to_visualize) {
+                const streamVisualizerRemote = new StreamVisualizer(e.streams[0], document.querySelector('canvas'));
+                streamVisualizerRemote.start();
+            }
         });
         //event when the ice gathering state is change
         this.pc.addEventListener('icegatheringstatechange', function () {
@@ -145,12 +150,15 @@
      * @param remoteAudio the audio element that paly the remote track
      * @param loginSuccessCallback function to handle successful login to the signaling server
      * @param loginErrorCallback function to handle unsuccessfully login to the signaling server
+     * @param loader
+     * @param toVisualize
      * @constructor of Gvoip object
      */
-    global.Gvoip = function(host, remoteAudio, loginSuccessCallback, loginErrorCallback, loader = undefined) {
+    global.Gvoip = function(host, remoteAudio, loginSuccessCallback, loginErrorCallback, loader = undefined, toVisualize = false) {
         /**
          * private properties
          */
+        global_to_visualize = toVisualize;
         let _remoteAudio = remoteAudio,
             _stream,
             _connectedUser = null,
