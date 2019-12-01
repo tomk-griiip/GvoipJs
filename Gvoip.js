@@ -13,7 +13,7 @@
      * @param loader
      * @constructor
      */
-    let ILoader = function(loader){
+    this.ILoader = function(loader){
 
         /**
          * abstract start method
