@@ -8,6 +8,42 @@
 (function (global) {
     'use strict';
 
+    /**
+     * interface for loader
+     * @param loader
+     * @constructor
+     */
+    let ILoader = function(loader){
+
+        /**
+         * abstract start method
+         * @returns {boolean}
+         */
+        this.start = function(){
+            return true;
+        }
+        /**
+         * abstract stop method
+         * @returns {boolean}
+         */
+        this.stop = function(){
+            return true;
+        }
+        function checkLoader(loader) {
+            if(!loader){
+                return false;
+            }
+            let isLoader =  typeof loader.start === 'function' && typeof loader.stop === 'function';
+            if(!isLoader){
+                console.warn("loader object must implement's start and stop method's or be undefined")
+            }
+
+            return isLoader;
+        }//checkLoader
+
+        return loader ? loader !== undefined && checkLoader(loader) : this; //init ILoader
+
+    }
     /*private function's*/
     /**
      *
@@ -83,9 +119,9 @@
      * @param _pc the RTCPeerConnection that was created in the createPeerConnection function
      * @returns {Promise<resolve,reject>} inside the resolve there is the RTCPeerConnection
      */
-    function negotiate(_pc){
-
+    function negotiate(_pc, __loader){
         return new Promise((resolve,reject)=>{
+            __loader.start();
             _pc = createPeerConnection.bind(this)(this.getRemoteAudio());//create RTCPeerConnection
 
             //get browser media (only audio)
@@ -95,7 +131,7 @@
                 stream.getTracks().forEach(function(track) {//add the local audio track to the RTCPeerConnection to be able to send it to the peer client
                     //if(pc.signalingState != "closed")
                     _pc.addTrack(track, stream);
-                    resolve(_pc);
+                    resolve(_pc, __loader);
                 });
             }).catch((e)=>{
 
@@ -111,7 +147,7 @@
      * @param loginErrorCallback function to handle unsuccessfully login to the signaling server
      * @constructor of Gvoip object
      */
-    global.Gvoip = function(host, remoteAudio, loginSuccessCallback, loginErrorCallback) {
+    global.Gvoip = function(host, remoteAudio, loginSuccessCallback, loginErrorCallback, loader = undefined) {
         /**
          * private properties
          */
@@ -125,7 +161,7 @@
          * public properties
          */
         this.ws = null, this.host = host, this.pc = null, this.myName = null, this.loginSuccessCallback = loginSuccessCallback,
-            this.loginErrorCallback = loginErrorCallback;
+            this.loginErrorCallback = loginErrorCallback, this.loader = ILoader(loader);
 
         /**
          *
@@ -212,9 +248,8 @@
         }
         this.setConnectedUser(user);
         //start negotiation and after create offer
-        negotiate.bind(this)(this.pc).then((_pc)=>_pc.createOffer().then((offer) => {
+        negotiate.bind(this)(this.pc, this.loader).then((_pc,__loader)=>_pc.createOffer().then((offer) => {
             let _offer = offer;
-            console.log('_pc : '+_pc);
             _pc.setLocalDescription(offer);
         }).then(()=>{
             // wait for ICE gathering to complete before sending the offer
@@ -226,7 +261,7 @@
                     this.checkState = function () {
                         if (_pc.iceGatheringState === 'complete') {
                             _pc.removeEventListener('icegatheringstatechange', _thatPromise.checkState);
-                            //loader.style.visibility = "hidden";
+                            __loader.stop();
                             resolve();
                         }
                     }
@@ -276,7 +311,7 @@
      */
     Gvoip.prototype.handle_offer = function(data){
         let offer = data.offer, name = data.name;
-
+        this.loader.stop();
         this.setConnectedUser(name);
 
         this.pc.setRemoteDescription(new RTCSessionDescription(offer)).then(()=>{
@@ -315,6 +350,7 @@
     /**
      * when user is login/logout to the signaling server update the connectedUsers
      * @param data  (all the connected users from the signaling server )
+     * @dispatch dispatch UsersChange on the window object level window/or any other object need to listen for this event
      */
     Gvoip.prototype.handle_connectedUsers = function(data){
         let _users = this.getConnectedUsers(), users = data.data;
