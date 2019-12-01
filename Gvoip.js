@@ -32,15 +32,33 @@ import('./streamvisualizer.js').then(module=>{
         this.stop = function(){
             return true;
         }
+        /**
+         *
+         * @param _interface to comparer with
+         * @param obj to check
+         * @returns {boolean} if the obj is instance of _interface
+         */
+        let methods = function (_interface, obj){
+            for(let item of Object.getOwnPropertyNames(_interface)){
+                if (item == 'constructor')
+                    continue;
+                else
+                if(!(typeof _interface[item] === 'function' && typeof obj[item] === 'function'))
+                    return false
+            }//for
+            return true;
+        }//methods
+
+        /**
+         * check if  loader object is instance of ILoader
+         * @param loader
+         * @returns {boolean} true if the loader obj that passed to constructor is implements stop and start
+         */
         function checkLoader(loader) {
-            if(!loader){
-                return false;
-            }
-            let isLoader =  typeof loader.start === 'function' && typeof loader.stop === 'function';
+            let isLoader =  methods(ILoader.prototype, loader);
             if(!isLoader){
                 console.warn("loader object must implement's start and stop method's or be undefined")
             }
-
             return isLoader;
         }//checkLoader
 
