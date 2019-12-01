@@ -151,9 +151,10 @@
                 if (_pc.iceGatheringState === 'complete') {
                     resolve();
                 }else{
+                    let _thatPromise = this;
                     this.checkState = function () {
                         if (_pc.iceGatheringState === 'complete') {
-                            _pc.removeEventListener('icegatheringstatechange', checkState);
+                            _pc.removeEventListener('icegatheringstatechange', _thatPromise.checkState);
                             //loader.style.visibility = "hidden";
                             resolve();
                         }
