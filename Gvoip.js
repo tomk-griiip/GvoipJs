@@ -140,7 +140,7 @@
         negotiate.bind(this)(this.pc).then((_pc)=>_pc.createOffer().then((offer) => {
             let _offer = offer;
             console.log('_pc : '+_pc);
-            __pc.setLocalDescription(offer);
+            _pc.setLocalDescription(offer);
 
 
             //.then(() => send({type: "offer", offer: _offer}));
@@ -148,21 +148,21 @@
         }).then(()=>{
             // wait for ICE gathering to complete before sending the offer
             return new Promise((resolve)=>{
-                if (_this.pc.iceGatheringState === 'complete') {
+                if (_pc.iceGatheringState === 'complete') {
                     resolve();
                 }else{
                     function checkState() {
-                        if (_this.pc.iceGatheringState === 'complete') {
-                            _this.pc.removeEventListener('icegatheringstatechange', checkState);
+                        if (_pc.iceGatheringState === 'complete') {
+                            _pc.removeEventListener('icegatheringstatechange', checkState);
                             //loader.style.visibility = "hidden";
                             resolve();
                         }
                     }
                 }
-                this.pc.addEventListener('icegatheringstatechange', checkState);
+                _pc.addEventListener('icegatheringstatechange', checkState);
             })
         }).then(() =>{//after ICE gathering complete send the offer with the ICE candidate
-            _this.send({type: "offer", offer: this.pc.localDescription})
+            this.send({type: "offer", offer: this.pc.localDescription})
         }).catch((error) => {//error handler
             console.log(`creating offer error : ${error}`);
             alert(`Error : ${error}`);
