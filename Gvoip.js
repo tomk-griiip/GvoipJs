@@ -27,29 +27,29 @@
         this.pc = new RTCPeerConnection(config);
         // register track listeners to play remote track
         this.pc.addEventListener('track', function(e) {
-            this.getRemoteAudio().srcObject  = e.streams[0];//.src = window.URL.createObjectURL(e.stream);
-            this.getRemoteAudio().play();
+            remoteAudio.srcObject  = e.streams[0];//.src = window.URL.createObjectURL(e.stream);
+            remoteAudio.play();
             //const streamVisualizerRemote = new StreamVisualizer(e.streams[0], remoteCanvas);
             //streamVisualizerRemote.start();
         });
         // register some listeners to help debugging
         this.pc.addEventListener('icegatheringstatechange', function () {
-            console.log(' icegatheringstatechange-> ' + this.pc.iceGatheringState);
+            console.log(' icegatheringstatechange-> ' + this.iceGatheringState);
         }, false);
 
 
         this.pc.addEventListener('iceconnectionstatechange', function () {
-            console.log('iceconnectionstatechange -> ' + this.pc.iceConnectionState);
+            console.log('iceconnectionstatechange -> ' + this.iceConnectionState);
         }, false);
 
 
         this.pc.addEventListener('signalingstatechange', function () {
-            console.log(' signalingstatechange -> ' + this.pc.signalingState);
+            console.log(' signalingstatechange -> ' + this.signalingState);
         }, false);
 
 
         this.pc.addEventListener('connectionstatechange', function () {
-            console.log("conaction state changed : " + this.pc.connectionState)
+            console.log("conaction state changed : " + this.connectionState)
         });
         return this.pc //return peer connection
     }
@@ -57,7 +57,7 @@
     function negotiate(_pc){
 
         return new Promise((resolve,reject)=>{
-            _pc = createPeerConnection.bind(this)();//create peer
+            _pc = createPeerConnection.bind(this)(this.getRemoteAudio());//create peer
 
             //get browser media (only audio)
             navigator.mediaDevices.getUserMedia({ video: false, audio: true }).then((stream) =>{
@@ -151,7 +151,7 @@
                 if (_pc.iceGatheringState === 'complete') {
                     resolve();
                 }else{
-                    function checkState() {
+                    var checkState = function () {
                         if (_pc.iceGatheringState === 'complete') {
                             _pc.removeEventListener('icegatheringstatechange', checkState);
                             //loader.style.visibility = "hidden";
