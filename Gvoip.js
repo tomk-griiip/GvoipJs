@@ -54,10 +54,10 @@
         return this.pc //return peer connection
     }
 
-    function negotiate(){
+    function negotiate(_pc){
 
         return new Promise((resolve,reject)=>{
-            this.pc = createPeerConnection.bind(this)();//create peer
+            _pc = createPeerConnection.bind(this)();//create peer
 
             //get browser media (only audio)
             navigator.mediaDevices.getUserMedia({ video: false, audio: true }).then((stream) =>{
@@ -65,8 +65,8 @@
                 //streamVisualizerLocal.start();
                 stream.getTracks().forEach(function(track) {
                     //if(pc.signalingState != "closed")
-                    this.pc.addTrack(track, stream);
-                    resolve(this);
+                    _pc.addTrack(track, stream);
+                    resolve(_pc);
                 });
             }).catch((e)=>{
 
@@ -137,9 +137,11 @@
         }
         this.setConnectedUser(user);
         //start negotiation and after create offer
-        negotiate.bind(this)().then((_this)=>_this.pc.createOffer().then((offer) => {
+        negotiate.bind(this)(this.pc).then((_pc)=>_pc.createOffer().then((offer) => {
             let _offer = offer;
-            return _this.pc.setLocalDescription(offer)
+            console.log('_pc : '+_pc);
+            __pc.setLocalDescription(offer);
+
 
             //.then(() => send({type: "offer", offer: _offer}));
 
