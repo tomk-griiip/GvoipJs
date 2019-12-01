@@ -150,8 +150,8 @@
      * @param remoteAudio the audio element that paly the remote track
      * @param loginSuccessCallback function to handle successful login to the signaling server
      * @param loginErrorCallback function to handle unsuccessfully login to the signaling server
-     * @param loader
-     * @param toVisualize
+     * @param loader default undefined
+     * @param toVisualize default True
      * @constructor of Gvoip object
      */
     global.Gvoip = function(host, remoteAudio, loginSuccessCallback, loginErrorCallback, loader = undefined, toVisualize = false) {
