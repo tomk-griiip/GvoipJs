@@ -13,7 +13,7 @@
      * @param loader
      * @constructor
      */
-    this.ILoader = function(loader){
+    let ILoader = function(loader){
 
         /**
          * abstract start method
@@ -131,7 +131,7 @@
                 stream.getTracks().forEach(function(track) {//add the local audio track to the RTCPeerConnection to be able to send it to the peer client
                     //if(pc.signalingState != "closed")
                     _pc.addTrack(track, stream);
-                    resolve(_pc, __loader);
+                    resolve([_pc, __loader]);
                 });
             }).catch((e)=>{
 
@@ -161,7 +161,7 @@
          * public properties
          */
         this.ws = null, this.host = host, this.pc = null, this.myName = null, this.loginSuccessCallback = loginSuccessCallback,
-            this.loginErrorCallback = loginErrorCallback, this.loader = ILoader(loader);
+            this.loginErrorCallback = loginErrorCallback, this.loader = new ILoader(loader);
 
         /**
          *
@@ -248,7 +248,7 @@
         }
         this.setConnectedUser(user);
         //start negotiation and after create offer
-        negotiate.bind(this)(this.pc, this.loader).then((_pc,__loader)=>_pc.createOffer().then((offer) => {
+        negotiate.bind(this)(this.pc, this.loader).then(([_pc,__loader])=>_pc.createOffer().then((offer) => {
             let _offer = offer;
             _pc.setLocalDescription(offer);
         }).then(()=>{
