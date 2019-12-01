@@ -17,21 +17,6 @@ import('./streamvisualizer.js').then(module=>{
      */
     let global_to_visualize = false;
     let ILoader = function(loader){
-
-        /**
-         * abstract start method
-         * @returns {boolean}
-         */
-        this.start = function(){
-            return true;
-        }
-        /**
-         * abstract stop method
-         * @returns {boolean}
-         */
-        this.stop = function(){
-            return true;
-        }
         /**
          *
          * @param _interface to comparer with
@@ -67,6 +52,23 @@ import('./streamvisualizer.js').then(module=>{
         else
             return this; //init ILoader
     }//ILoader
+
+
+    /**
+     * abstract start method
+     * @returns {boolean}
+     */
+    ILoader.prototype.start = function(){
+        return true;
+    }
+    /**
+     * abstract stop method
+     * @returns {boolean}
+     */
+    ILoader.prototype.stop = function(){
+        return true;
+    }
+
     /*private function's*/
     /**
      *
