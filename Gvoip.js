@@ -343,6 +343,8 @@ import('./streamvisualizer.js').then(module=>{
         let offer = data.offer, name = data.name;
         this.loader.stop();
         this.setConnectedUser(name);
+        if(this.pc == null)
+            this.pc = createPeerConnection.bind(this)(this.getRemoteAudio());
 
         this.pc.setRemoteDescription(new RTCSessionDescription(offer)).then(()=>{
             return this.pc.createAnswer()
