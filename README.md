@@ -141,7 +141,7 @@ but if a loader has passed to the constructor it's must implantat start and stop
 and a wrning will be print to the browser console 
 
 
-##bluetooth support
+## bluetooth support
 
 for control the bluetooth on the raspberry pi need to :
 1. chose the relevant raspberry pi device so Gvoip will have that user as connected user then :
