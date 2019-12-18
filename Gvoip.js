@@ -366,11 +366,11 @@ import('./streamvisualizer.js').then(module=>{
         });
 
         this.setRemoteAudio(null)
-        this.setConnectedUser(null);
 
         setTimeout(()=>{
             this.pc.close();
-            this.send({type: "leave",name:this.name});
+            this.send({type: "leave"});
+            this.setConnectedUser(null);
         },500)
     };//handleLeave
     /**
