@@ -15,6 +15,40 @@ import('./streamvisualizer.js').then(module=>{
      * @param loader
      * @constructor
      */
+
+    let BluetoothCls = function(_that){
+
+        this._that = _that
+    }
+
+    BluetoothCls.prototype.setConnectTo = function(user){
+        if(! user )
+            return new Error('cant set user undefined')
+        if(! this._that.myName)
+            return new Error('user must be loged in to signaling server in order to set blutoot')
+        this._that.setConnectedUser(user)
+        this._that.send({type: "bluetooth_login", data: this._that.myName})
+    }
+
+    BluetoothCls.prototype.startScan = function(){
+        this._that.send({type: "bluetooth_scan", data:true})
+    }
+
+    BluetoothCls.prototype.connect = function(deviceName, deviceAddress){
+        this._that.send({type: "bluetooth_connect", data:{name:deviceName, address:deviceAddress}});
+
+    }
+
+    BluetoothCls.prototype.handle_bluetooth_scan = function(msg){
+        let event = new CustomEvent('deviceFound',{detail:{}},true,true);//document.create('UsersChange');
+        event.data = msg.data;
+        window.dispatchEvent(event)
+    }
+    BluetoothCls.prototype.handle_bluetooth_status = function(msg){
+        let event = new CustomEvent('bluetoothStatusChange',{detail:{}},true,true);//document.create('UsersChange');
+        event.data = msg.data;
+        window.dispatchEvent(event)
+    }
     let global_to_visualize = false;
     let ILoader = function(loader){
         /**
@@ -81,7 +115,11 @@ import('./streamvisualizer.js').then(module=>{
         console.log("Got message", msg.data);
         let data = JSON.parse(msg.data),
             handlerName = "handle_" + data.type;
-        this[handlerName](data);
+        try {
+            this[handlerName](data);
+        }catch (e) {
+            this.Bluetooth[handlerName](data)
+        }
     }
     /**
      *
@@ -191,7 +229,7 @@ import('./streamvisualizer.js').then(module=>{
          * public properties
          */
         this.ws = null, this.host = host, this.pc = null, this.myName = null, this.loginSuccessCallback = loginSuccessCallback,
-            this.loginErrorCallback = loginErrorCallback, this.loader = new ILoader(loader);
+            this.loginErrorCallback = loginErrorCallback, this.loader = new ILoader(loader), this.Bluetooth =  new BluetoothCls(this);
 
         /**
          *
@@ -399,6 +437,4 @@ import('./streamvisualizer.js').then(module=>{
         window.dispatchEvent(event)
     }//handleAddUser
 
-
 })(this);
-
