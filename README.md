@@ -139,3 +139,48 @@ let gvoip = new Gvoip(host, remoteAudio, loginSuccess, loginError, new loaderObj
 !!! its o.k to not use the loader option and to not pass one
 but if a loader has passed to the constructor it's must implantat start and stop otherwise loader will not show on the screen  
 and a wrning will be print to the browser console 
+
+
+##bluetooth support
+
+for control the bluetooth on the raspberry pi need to :
+1. chose the relevant raspberry pi device so Gvoip will have that user as connected user then :
+inside Gvoip there is anther object Bluetooth (there is no need to init that object !!!)
+(i). call function Bluetooth.startScan() to start the scan
+
+```javascript
+    scanBtn = document.querySelector('#scanBtn')
+    scanBtn.addEventListener("click", ()=>{
+        gv.Bluetooth.startScan()
+    });
+
+``` 
+
+(ii) add window event listener (deviceFound) to execute when the raspberry pi send new founded device
+
+```javascript
+let deviceName = null, deviceAddress = null;
+window.addEventListener('deviceFound', function(e){
+    //e.data.address = new device address
+    // e.data.name = new device name;
+    deviceName = e.data.name; 
+    deviceAddress = e.data.address
+});
+``` 
+(iii) in order to connect to the device need to call 
+Bluetooth.connect({device name}, {device address});
+```javascript
+ gv.Bluetooth.connect(deviceName, deviceAddress);
+```
+(iv) when the raspberry pi finish to connect new event will throw named   bluetoothStatusChange
+with device address name and state (connected or failed )
+
+```javascript
+window.addEventListener('bluetoothStatusChange', function(e){
+
+   alert(`${e.data.address} - ${e.data.name} - ${e.data.state}`);
+    console.log('from bluetoothStatusChange event listener: ', e.data);
+
+});
+```
+if state is connected bluetooth device connected successfully 
