@@ -148,7 +148,7 @@ for control the bluetooth on the raspberry pi need to :
 inside Gvoip there is anther object Bluetooth (there is no need to init that object !!!)
 set the relevnt raspberry pi device to connect to 
 ```javascript
-    gv.Bluetooth.setConnectTo({the raspberry pi user chose from the list})
+    gvoip.Bluetooth.setConnectTo({the raspberry pi user chose from the list})
 ```
 
 (i). call function Bluetooth.startScan() to start the scan
@@ -156,7 +156,7 @@ set the relevnt raspberry pi device to connect to
 ```javascript
     scanBtn = document.querySelector('#scanBtn')
     scanBtn.addEventListener("click", ()=>{
-        gv.Bluetooth.startScan()
+        gvoip.Bluetooth.startScan()
     });
 
 ``` 
@@ -175,7 +175,7 @@ window.addEventListener('deviceFound', function(e){
 (iii) in order to connect to the device need to call 
 Bluetooth.connect({device name}, {device address});
 ```javascript
- gv.Bluetooth.connect(deviceName, deviceAddress);
+ gvoip.Bluetooth.connect(deviceName, deviceAddress);
 ```
 (iv) when the raspberry pi finish to connect new event will throw named   bluetoothStatusChange
 with device address name and state (connected or failed )
