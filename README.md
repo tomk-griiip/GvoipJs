@@ -146,6 +146,11 @@ and a wrning will be print to the browser console
 for control the bluetooth on the raspberry pi need to :
 1. chose the relevant raspberry pi device so Gvoip will have that user as connected user then :
 inside Gvoip there is anther object Bluetooth (there is no need to init that object !!!)
+set the relevnt raspberry pi device to connect to 
+```javascript
+    gv.Bluetooth.setConnectTo({the raspberry pi user chose from the list})
+```
+
 (i). call function Bluetooth.startScan() to start the scan
 
 ```javascript
