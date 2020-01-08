@@ -272,6 +272,23 @@ import('./streamvisualizer.js').then(module=>{
          * @returns {Array}
          */
         this.getConnectedUsers = function(){return _connectedUsers};//getter connectedUsers
+
+        /**
+         * tries to recall the user for timer seconds
+         */
+        this.reCall = function(timer, user) {
+            console.log("In recall with user: ", user);
+            setTimeout(function() {
+                if (_self.getConnectedUsers().includes(user)) {
+                    console.log(`Establishing connection with user ${user}`);
+                    _self.startNegotiate(user);
+                } else if (timer > 0) {
+                    console.log(`user ${user} is offline`);
+                    _self.reCall(--timer, user);
+                }
+            }, 1000);
+        };
+  
         /**
          * start listening  server web socket
          */
@@ -372,6 +389,12 @@ import('./streamvisualizer.js').then(module=>{
             this.send({type: "leave"});
             this.setConnectedUser(null);
         },500)
+        if (data.type === "leave") {
+            var timer = 300; // indicates for how long the program need to try recalling the user
+            var userToCall = this.getConnectedUser();
+            console.log(`Lost connection with ${userToCall}, Trying to reconnect`);
+            this.reCall(timer, userToCall);
+        } // Call has been hungup NOT by user
     };//handleLeave
     /**
      * when somebody sends us an offer to connect throw p2p connection
