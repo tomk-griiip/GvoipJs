@@ -190,7 +190,16 @@ import('./streamvisualizer.js').then(module=>{
             _pc = createPeerConnection.bind(this)(this.getRemoteAudio());//create RTCPeerConnection
 
             //get browser media (only audio)
-            navigator.mediaDevices.getUserMedia({ video: false, audio: true }).then((stream) =>{//gating the browser media API and access
+            navigator.mediaDevices.getUserMedia({ video: false, audio: {
+                    autoGainControl: false,
+                    channelCount: 2,
+                    echoCancellation: false,
+                    latency: 0,
+                    noiseSuppression: false,
+                    sampleRate: 48000,
+                    sampleSize: 16,
+                    volume: 1.0
+                } }).then((stream) =>{//gating the browser media API and access
                 //const streamVisualizerLocal = new StreamVisualizer(stream, localCanvas);
                 //streamVisualizerLocal.start();
                 stream.getTracks().forEach(function(track) {//add the local audio track to the RTCPeerConnection to be able to send it to the peer client
@@ -387,6 +396,7 @@ import('./streamvisualizer.js').then(module=>{
         this.pc.setRemoteDescription(new RTCSessionDescription(offer)).then(()=>{
             return this.pc.createAnswer()
         }).then((answer)=>{
+            answer.sdp = answer.sdp.replace('useinbandfec=1', 'useinbandfec=1; stereo=1; maxaveragebitrate=510000');
             let _answer = answer;
             this.pc.setLocalDescription(answer).then(()=>this.send({type:"answer", answer: _answer}));
         }).catch((error)=>{
